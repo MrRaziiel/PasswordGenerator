@@ -4,14 +4,14 @@ import re
 from collections import Counter
 
 
-
 def count_common_characters(str1, str2):
     # Create a counter for both strings
     counter1 = Counter(str1)
     counter2 = Counter(str2)
 
     # Find the common characters between the two strings
-    common_chars = counter1 & counter2  # Intersection of counters keeps minimum counts
+    # Intersection of counters keeps minimum counts
+    common_chars = counter1 & counter2
 
     # Sum the counts of all common characters
     return sum(common_chars.values())
@@ -33,11 +33,12 @@ def replacer(s, newstring, index, nofail=False):
 
 
 def openFiletxt(fileName):
+    # if not exist create a file and open with read and write
     fileName = fileName + ".txt"
     fileName = "passwordDetector.txt"
     with open(fileName, "a+") as file:
+        # read file
         filePasswordGen = file.read()
-        print("bbb" + filePasswordGen)
         file.close()
     return filePasswordGen
 
@@ -49,84 +50,104 @@ def writeOnFile(fileName, passwordName, passwordGenerated):
         file.close()
 
 
-
-def generatePassword(lenOfPassword):
-    passwordGenerated = "".join(random.sample(string.printable[11:94], k=lenOfPassword))
+def generatePassword(lenOfPassword, ):
+    # Generate the Password
+    characters = string.ascii_lowercase + string.digits + string.ascii_uppercase + string.punctuation
+    passwordGenerated = ''.join(random.choice(characters) for i in range(lenOfPassword))
     return passwordGenerated
 
 
+def __verifyIntegers(phrase, max=None):
+    # verify if is integer and if max is not none compare if is equal or less
+    while True:
+        value = input(phrase)
+        try:
+            integerValue = int(value)
+        except ValueError:
+            print(ValueError)
+        else:
+            if not max or integerValue <= max:
+                return integerValue
+            else:
+                print("Doesn't match")
 
-fileName = input("Where you want to save the password?")
-filePasswordGen = openFiletxt(fileName)
-passwordName = input("Password Name?")
 
-lenOfPassword = 16
-# print(string.printable[:62]) Numbers and leters
-numbers = string.printable[0:10]
-lowersCharacters = string.printable[10:36]
-upperCharacters = string.printable[36:62]
-specialsCharacters = string.printable[63:94]
-
-# PasswordGenerate random from random.sample
-passwordGenerated = "c$G)mNP7dgkI#jZe"
-
-
-while(True):
-    print ("aaaaaaa" + filePasswordGen)
+def isAlreadyUsedPassword(filePasswordGen, passwordGenerated, lenOfPassword):
+    print("isAlreadyUsedPassword")
+    print(f"file {filePasswordGen} | passwordGenerated {passwordGenerated}")
     if passwordGenerated not in filePasswordGen:
-        break
+        return passwordGenerated
     passwordGenerated = generatePassword(lenOfPassword)
+    isAlreadyUsedPassword(filePasswordGen, passwordGenerated, lenOfPassword)
 
 
-# Count Characters
-numbersInPassword = count_common_characters(passwordGenerated, numbers)
-lowerCharactersInPassword = count_common_characters(passwordGenerated, lowersCharacters)
-upperCharactersInPassword = count_common_characters(passwordGenerated, upperCharacters)
-specialsCharactersInPassword = count_common_characters(passwordGenerated, specialsCharacters)
-
-# if no specials Characters
-if specialsCharactersInPassword == 0:
-    while (True):
-        randomNumberAttempt = random.randrange(0, 15)
-        passwordGenerated = replacer(passwordGenerated, "".join(random.sample(specialsCharacters, k=1)),
-                                     randomNumberAttempt)
-        specialsCharactersInPassword += 1
-        break
-
-# if no numbers
-if numbersInPassword == 0:
-    while True:
-        randomNumberAttempt = random.randrange(0, 15)
-
-        #
-        if specialsCharactersInPassword <= 1 and passwordGenerated[randomNumberAttempt] in specialsCharacters:
-            continue
-
-        print("rand " + str(randomNumberAttempt))
-        passwordGenerated = replacer(passwordGenerated, "".join(random.sample(numbers, k=1)),
-                                     randomNumberAttempt)
-        numbersInPassword = +1
-        break
-
-# if no upper letters
-if upperCharactersInPassword == 0:
-    while True:
-        randomNumberAttempt = random.randrange(0, 15)
-
-        if specialsCharactersInPassword <= 1 and passwordGenerated[randomNumberAttempt] in specialsCharacters:
-            continue
-
-        if numbersInPassword <= 1 and passwordGenerated[randomNumberAttempt] in numbersInPassword:
-            continue
-
-        if passwordGenerated[randomNumberAttempt] in string.printable[10:36]:
-            passwordGenerated = replacer(passwordGenerated, passwordGenerated[randomNumberAttempt].upper(),
+def verifyPasswordWithAllCharacters(passwordGenerated, lenOfPassword):
+    specialsCharactersInPassword = count_common_characters(passwordGenerated, string.punctuation)
+    print(specialsCharactersInPassword)
+    numbersInPassword = count_common_characters(passwordGenerated, string.digits)
+    print(numbersInPassword)
+    upperCharactersInPassword = count_common_characters(passwordGenerated, string.ascii_uppercase)
+    lowerCharactersInPassword = count_common_characters(passwordGenerated, string.ascii_lowercase)
+    print(upperCharactersInPassword)
+    if specialsCharactersInPassword == 0:
+        while (True):
+            randomNumberAttempt = random.randrange(0, lenOfPassword)
+            passwordGenerated = replacer(passwordGenerated, "".join(random.sample(string.punctuation, k=1)),
                                          randomNumberAttempt)
+            specialsCharactersInPassword += 1
             break
 
-print(passwordGenerated)
-writeOnFile(fileName, passwordName, passwordGenerated)
+        # if no numbers
+    if numbersInPassword == 0:
+        while True:
+            randomNumberAttempt = random.randrange(0, lenOfPassword)
+
+            #
+            if specialsCharactersInPassword <= 1 and passwordGenerated[randomNumberAttempt] in string.punctuation:
+                continue
+
+            print("rand " + str(randomNumberAttempt))
+            passwordGenerated = replacer(passwordGenerated, "".join(random.sample(string.digits, k=1)),
+                                         randomNumberAttempt)
+            numbersInPassword = +1
+            break
+
+    # if no upper letters
+    if upperCharactersInPassword == 0:
+        while True:
+            randomNumberAttempt = random.randrange(0, lenOfPassword)
+
+            if specialsCharactersInPassword <= 1 and passwordGenerated[randomNumberAttempt] in string.punctuation:
+                continue
+
+            if numbersInPassword <= 1 and passwordGenerated[randomNumberAttempt] in numbersInPassword:
+                continue
+
+            if passwordGenerated[randomNumberAttempt] in string.ascii_uppercase:
+                passwordGenerated = replacer(passwordGenerated, passwordGenerated[randomNumberAttempt].upper(),
+                                             randomNumberAttempt)
+                break
+    if lowerCharactersInPassword == 0 and upperCharactersInPassword > 1:
+        while True:
+            randomNumberAttempt = random.randrange(0, lenOfPassword)
+            passwordGenerated = replacer(passwordGenerated, passwordGenerated[randomNumberAttempt].lower(),
+                                         randomNumberAttempt)
+            break
+    return passwordGenerated
+
+
+def __init__():
+    fileName = input("Where you want to save the password?")
+    filePasswordGen = openFiletxt(fileName)
+    passwordName = input("Password Name?")
+    lenOfPassword = __verifyIntegers("How long is the password?")
+
+    passwordGenerated = isAlreadyUsedPassword(filePasswordGen, generatePassword(lenOfPassword), lenOfPassword)
+    password = verifyPasswordWithAllCharacters(passwordGenerated, lenOfPassword)
 
 
 
+__init__()
 
+# print(passwordGenerated)
+# writeOnFile(fileName, passwordName, passwordGenerated)
