@@ -37,7 +37,6 @@ def replacer(s, newstring, index, nofail=False):
 
 
 def importPasswordFromFile(path):
-
     with open(path, 'r') as file:
         for line in file:
             if line.strip() != "":
@@ -52,7 +51,6 @@ def importPasswordFromFile(path):
 
 
 def importFile(path):
-
     if ".txt" not in path:
         print("Is not a txt file.")
         return None
@@ -71,7 +69,6 @@ def importFile(path):
     with open(path, "r+") as file:
         # read file
         filePasswordGen = file.read()
-        print(f"bbbbbbb {filePasswordGen} | cc {file}")
         file.close()
     return filePasswordGen
 
@@ -98,14 +95,6 @@ def verifyIntegers(phrase):
 
     return integerValue
 
-
-# def isAlreadyUsedPassword(filePasswordGen, passwordGenerated, lenOfPassword):
-#     print("isAlreadyUsedPassword")
-#     print(f"file {filePasswordGen} | passwordGenerated {passwordGenerated}")
-#     if passwordGenerated not in filePasswordGen:
-#         return passwordGenerated
-#     passwordGenerated = generatePassword(lenOfPassword)
-#     isAlreadyUsedPassword(filePasswordGen, passwordGenerated, lenOfPassword)
 
 def generate_key():
     key = Fernet.generate_key()
@@ -219,18 +208,23 @@ passwordsKeeper = PasswordsKeeper()
 def __init__():
     while True:
         path = input("What is your Bd?")
-
         fileBd = importFile(path)
         importPasswordFromFile(fileBd)
         choose = verifyIntegers("1 - Get Password\n2 - Generate Password ")
 
         if choose == 1:
+            siteName = input("What is the site name?")
+            key = str(input("What is the the key?"))
+            chosenSite = next((x for x in passwordsKeeper.safe if x.Name == siteName), None)
+            if chosenSite:
+                decryptedPassword = decryptPassword(chosenSite.Hash, key)
+                print(f"SITE: {chosenSite.Name}\nUSER NAME:{chosenSite.UserName}\nYOUR PASSWORD IS {decryptedPassword}")
 
-            decryptedPassword = decryptPassword(passwordsKeeper.safe[0].Hash, "IKzsGYeqY0yd75Cymxa1-WIMmZlNU5KQPf2AE9GGflY=")
-            print(decryptedPassword)
+            else:
+                print("Site not found")
+
         if choose == 2:
             path = input("What is your Bd?")
-
             fileBd = importFile(path)
             importPasswordFromFile(fileBd)
             siteName = input("Site name?")
