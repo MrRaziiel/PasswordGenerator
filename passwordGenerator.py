@@ -6,6 +6,9 @@ import os
 from collections import Counter
 import json
 from cryptography.fernet import Fernet
+from tkinter import filedialog as fd
+
+attributesToCheck = ['Name', 'UserName', "MaxCharacters", "Password"]
 
 
 def count_common_characters(str1, str2):
@@ -35,42 +38,30 @@ def replacer(s, newstring, index, nofail=False):
     # insert the new string between "slices" of the original
     return s[:index] + newstring + s[index + 1:]
 
+def importFile():
+    while True:
+        file_path = fd.askopenfilename(title="Select a file")
 
-def importPasswordFromFile(path):
-    with open(path, 'r') as file:
-        for line in file:
-            if line.strip() != "":
-                newPassword = None
-                load = json.loads(line)
-                if load:
-                    newPassword = PasswordGenerator(load['Name'], load['UserName'], load["MaxCharacters"])
-                    newPassword.password = load["Password"]
-                    if "Hash" in load:
-                        newPassword.Hash = load["Hash"]
-                    passwordsKeeper.addMember(newPassword)
+        if file_path:
+            print(file_path[-4:])
+            if file_path[-4:] == ".txt":
+                with open(file_path, "r+") as file:
+                    # read file
+                    filePasswordGen = file.read()
+                    if filePasswordGen and filePasswordGen.strip() != "":
+                        for line in file:
+                            newPassword = None
+                            load = json.loads(line)
+                            if load and all(k in load for k in attributesToCheck):
+                                newPassword = PasswordGenerator(load['Name'], load['UserName'], load["MaxCharacters"])
+                                newPassword.password = load["Password"]
+                                flag = True
+                                if "Hash" in load:
+                                    newPassword.Hash = load["Hash"]
+                                passwordsKeeper.addMember(newPassword)
 
-
-def importFile(path):
-    if ".txt" not in path:
-        print("Is not a txt file.")
-        return None
-
-    # Check if it is a path
-    if not os.path.exists(path):
-        print(f"The path '{path}' does not exist.")
-        return None
-
-    # Check if it is a file
-    if not os.path.isfile(path):
-        print(f"The file '{path}' does not exist.")
-        return None
-
-    # If not exist create a file and open with read and write
-    with open(path, "r+") as file:
-        # read file
-        filePasswordGen = file.read()
-        file.close()
-    return filePasswordGen
+                    file.close()
+                    return file_path, True
 
 
 def writeOnFile(path, objectToDict):
@@ -80,6 +71,7 @@ def writeOnFile(path, objectToDict):
         person = objectToDict.to_dict()
         json.dump(person, file)
         file.write("\n")
+    file.close()
 
 
 def verifyIntegers(phrase):
@@ -117,6 +109,7 @@ def decryptPassword(encrypted_password: bytes, key: bytes) -> str:
     # Decrypt the password and decode it back to a string
     decrypted_password = fernet.decrypt(encrypted_password).decode()
     return decrypted_password
+
 
 class PasswordGenerator:
     def __init__(self, name, userName, maxCharacters):
@@ -206,12 +199,10 @@ passwordsKeeper = PasswordsKeeper()
 
 
 def __init__():
+    print("What is your Bd?")
+    fileBd, flag = importFile()
     while True:
-        path = input("What is your Bd?")
-        fileBd = importFile(path)
-        importPasswordFromFile(fileBd)
         choose = verifyIntegers("1 - Get Password\n2 - Generate Password ")
-
         if choose == 1:
             siteName = input("What is the site name?")
             key = str(input("What is the the key?"))
@@ -224,16 +215,13 @@ def __init__():
                 print("Site not found")
 
         if choose == 2:
-            path = input("What is your Bd?")
-            fileBd = importFile(path)
-            importPasswordFromFile(fileBd)
             siteName = input("Site name?")
             userName = input("User Name?")
             lenOfPassword = verifyIntegers("How long is the password?")
             generatorPassword = PasswordGenerator(siteName, userName, lenOfPassword)
             generatorPassword.generatePassword()
             passwordsKeeper.addMember(generatorPassword)
-            writeOnFile(path, generatorPassword)
+            writeOnFile(fileBd, generatorPassword)
         else:
             break
 
